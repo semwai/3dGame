@@ -32,14 +32,14 @@ import kotlin.system.exitProcess
 class Main : Application() {
     override fun start(primaryStage: Stage) {
         TextureLoader.load()
-        Container.floor()
-        for (i in 0 until 10)
-            for (j in 0 until 10)
+        //Container.floor()
+        for (i in 0 until Map.map1.size)
+            for (j in 0 until Map.map1[0].size)
                 Container.box(j*200,i*200,if (Map.get(j,i) == 0) Container.BoxType.Floor else Container.BoxType.Wall)
-        Container.unit(0,0)
+        Container.unit(1,1)
         Container.point(5,5)
         val light = PointLight()
-        light.transforms.add(Translate(-3000.0, 3000.0, -20000.0))
+        light.transforms.add(Translate(-3000.0, 3000.0, -2000.0))
         val group = Group()
         group.children.addAll(Container.data)
         val camera: Camera = PerspectiveCamera()
@@ -49,7 +49,7 @@ class Main : Application() {
                 Rotate(22.5, Rotate.Z_AXIS)
         )
         val scene = Scene(group, WIDTH.toDouble(), HEIGHT.toDouble(), true, SceneAntialiasing.BALANCED)
-        scene.fill = Color.PALEVIOLETRED
+        scene.fill = Color.BLACK
         scene.camera = camera
         primaryStage.addEventHandler(KEY_PRESSED) { event: KeyEvent ->
             group.children.forEach {
@@ -58,22 +58,22 @@ class Main : Application() {
             val angleProperty = camera.rotationAxis
             val speed = 100.0
             when (event.code) {
-                KeyCode.W -> {
+                KeyCode.UP -> {
                     camera.transforms.add(
                             Translate(speed * sin(angleProperty.x), -speed * cos(angleProperty.x), speed * cos(angleProperty.x))
                     )
                 }
-                KeyCode.S -> {
+                KeyCode.DOWN -> {
                     camera.transforms.add(
                             Translate(-speed * sin(angleProperty.x), speed * cos(angleProperty.x), -speed * cos(angleProperty.x))
                     )
                 }
-                KeyCode.A -> {
+                KeyCode.LEFT -> {
                     camera.transforms.add(
                             Translate(-speed * cos(angleProperty.x), 0.0)
                     )
                 }
-                KeyCode.D -> {
+                KeyCode.RIGHT -> {
                     camera.transforms.add(
                             Translate(speed * cos(angleProperty.x), 0.0)
                     )
@@ -92,7 +92,8 @@ class Main : Application() {
                     Translate(0.0, -delta * sin(angleProperty.x), delta * cos(angleProperty.x))
             )
         }
-        primaryStage.title = "Genuine Coder"
+
+        primaryStage.title = "☺"
         primaryStage.scene = scene
         primaryStage.isFullScreen = true
         primaryStage.show()
@@ -126,7 +127,7 @@ class Container {
             model.material = material
             model.translateXProperty().set(x.toDouble())
             model.translateYProperty().set(y.toDouble())
-            model.translateZProperty().set(700.0 - 100 * (type.value))
+            model.translateZProperty().set(-100.0 * (type.value))
             model.setOnMouseClicked {
 
                 ParallelTransition(model, RotateTransition(Duration.millis(1500.0)).apply {
@@ -154,6 +155,8 @@ class Container {
             val model = javafx.scene.shape.Cylinder(80.0,30.0)
             val group = Group()
             var angle = PI / 2
+            var cx: Double = x.toDouble()
+            var cy: Double = y.toDouble()
             group.translateXProperty().set(x*200.0)
             group.translateYProperty().set(y*200.0 + 20)
             model.transforms.addAll(
@@ -168,8 +171,14 @@ class Container {
                 when (it.code){
                     KeyCode.SPACE -> {
                         ParallelTransition(group, TranslateTransition(Duration.millis(100.0)).apply {
-                            this.byY = 200.0 * sin(angle)
-                            this.byX = 200.0 * cos(angle)
+                            if (Map.get((cx + cos(angle)).toInt() , (cy + sin(angle)).toInt()) == 0) {
+                                this.byY = 200.0 * sin(angle)
+                                this.byX = 200.0 * cos(angle)
+                                cy += sin(angle) / 2
+                                cx += cos(angle) / 2
+                                println("$cx $cy")
+                            }
+
                         }).play()
                     }
                     KeyCode.Q -> {
