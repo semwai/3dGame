@@ -35,9 +35,9 @@ class Main : Application() {
         //Container.floor()
         for (i in 0 until Map.map1.size)
             for (j in 0 until Map.map1[0].size)
-                Container.box(j*200,i*200,if (Map.get(j,i) == 0) Container.BoxType.Floor else Container.BoxType.Wall)
-        Container.unit(1,1)
-        Container.point(5,5)
+                Container.box(j * 200, i * 200, if (Map.get(j, i) == 0) Container.BoxType.Floor else Container.BoxType.Wall)
+        Container.unit(1, 1)
+        Container.point(5, 5)
         val light = PointLight()
         light.transforms.add(Translate(-3000.0, 3000.0, -2000.0))
         val group = Group()
@@ -98,6 +98,7 @@ class Main : Application() {
         primaryStage.isFullScreen = true
         primaryStage.show()
     }
+
     companion object {
         private const val WIDTH = 800
         private const val HEIGHT = 600
@@ -122,7 +123,7 @@ class Container {
         fun box(x: Int, y: Int, type: BoxType) {
             val model = Box(200.0, 200.0, 200 * type.value + 10.0)
             val material = PhongMaterial()
-            material.diffuseMap = if (type.value == 1) TextureLoader.images[TEXTURE.Stone.value] else TextureLoader.images[TEXTURE.Grass.value]
+            material.diffuseMap = TextureLoader.get(if (type.value == 1) TEXTURE.Stone else TEXTURE.Floor)
             model.cullFace = CullFace.BACK
             model.material = material
             model.translateXProperty().set(x.toDouble())
@@ -141,37 +142,37 @@ class Container {
         }
 
 
-        fun floor(){
-            val model = Box(200.0*8, 200.0*8, 1.0)
-            model.translateXProperty().set(200.0*3 + 100.0)
-            model.translateYProperty().set(200.0*3 + 100.0)
+        fun floor() {
+            val model = Box(200.0 * 8, 200.0 * 8, 1.0)
+            model.translateXProperty().set(200.0 * 3 + 100.0)
+            model.translateYProperty().set(200.0 * 3 + 100.0)
             val material = PhongMaterial()
-            material.diffuseMap = TextureLoader.images[TEXTURE.Floor.value]
+            material.diffuseMap = TextureLoader.get(TEXTURE.Floor)
             model.material = material
             data.add(model)
         }
 
-        fun unit(x: Int, y: Int){
-            val model = javafx.scene.shape.Cylinder(80.0,30.0)
+        fun unit(x: Int, y: Int) {
+            val model = javafx.scene.shape.Cylinder(80.0, 30.0)
             val group = Group()
             var angle = PI / 2
             var cx: Double = x.toDouble()
             var cy: Double = y.toDouble()
-            group.translateXProperty().set(x*200.0)
-            group.translateYProperty().set(y*200.0 + 20)
+            group.translateXProperty().set(x * 200.0)
+            group.translateYProperty().set(y * 200.0 + 20)
             model.transforms.addAll(
-                    Translate(0.0,0.0,-140.0),
+                    Translate(0.0, 0.0, -140.0),
                     Rotate(-22.0, Rotate.X_AXIS)
             )
             model.material = PhongMaterial().apply {
-                this.diffuseMap = TextureLoader.images[TEXTURE.Boy.value]
+                this.diffuseMap = TextureLoader.get(TEXTURE.Boy)
             }
             group.setOnKeyPressed {
-                println(it.toString())
-                when (it.code){
+                //println(it.toString())
+                when (it.code) {
                     KeyCode.SPACE -> {
                         ParallelTransition(group, TranslateTransition(Duration.millis(100.0)).apply {
-                            if (Map.get((cx + cos(angle)).toInt() , (cy + sin(angle)).toInt()) == 0) {
+                            if (Map.get((cx + cos(angle)).toInt(), (cy + sin(angle)).toInt()) == 0) {
                                 this.byY = 200.0 * sin(angle)
                                 this.byX = 200.0 * cos(angle)
                                 cy += sin(angle) / 2
@@ -184,13 +185,13 @@ class Container {
                     KeyCode.Q -> {
                         ParallelTransition(group, RotateTransition(Duration.millis(10.0)).apply {
                             this.byAngle = -90.0 / 10
-                            angle -= PI/2 / 10
+                            angle -= PI / 2 / 10
                         }).play()
                     }
                     KeyCode.E -> {
                         ParallelTransition(group, RotateTransition(Duration.millis(10.0)).apply {
                             this.byAngle = 90.0 / 10
-                            angle += PI/2 / 10
+                            angle += PI / 2 / 10
                         }).play()
                     }
                 }
@@ -199,32 +200,34 @@ class Container {
                     Sphere(90.0).apply {
                         translateZ = -30.0
                         material = PhongMaterial().apply {
-                            diffuseMap = TextureLoader.images[TEXTURE.Jacket.value]
+                            diffuseMap = TextureLoader.get(TEXTURE.Jacket)
                         }
                     })
             data.add(group)
         }
-        fun point(x: Int, y: Int){
-            val model = javafx.scene.shape.Cylinder(110.0,300.0)
+
+        fun point(x: Int, y: Int) {
+            val model = javafx.scene.shape.Cylinder(110.0, 300.0)
             val group = Group()
             model.transforms.addAll(
-                    Translate(x*200.0,y*200.0,-140.0),
+                    Translate(x * 200.0, y * 200.0, -140.0),
                     Rotate(90.0, Rotate.X_AXIS)
             )
             model.material = PhongMaterial().apply {
-                this.diffuseMap = TextureLoader.images[TEXTURE.Floor.value]
+                this.diffuseMap = TextureLoader.get(TEXTURE.Floor)
             }
             group.children.addAll(model)
             data.add(group)
         }
-        fun player(){
+
+        fun player() {
             val model = Sphere(300.0, 36)
 
             model.setOnMouseClicked {
                 val a = ParallelTransition(model, TranslateTransition(Duration.millis(100.0)).apply {
                     this.byX = 100.0
                 })
-                    a.play()
+                a.play()
 
             }
             data.add(model)
@@ -234,12 +237,16 @@ class Container {
 
 class TextureLoader {
     companion object {
-        val images = mutableListOf<Image>()
+        private val images = mutableListOf<Image>()
         fun load() {
             val folder = "assets/images/"
             listOf("stone.jpg", "grass.jpg", "floor.jpg", "boy.jpg", "jaket.jpg").forEach {
                 images.add(Image(javaClass.getResourceAsStream(folder + it)))
             }
+        }
+
+        fun get(texture: TEXTURE): Image {
+            return images[texture.value]
         }
     }
 
